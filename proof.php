@@ -49,7 +49,15 @@ function alignTeams($players, $stats, $gameId) {
     }
     $stats[$gameId]['enemies'] = array();
     $stats[$gameId]['friends'] = array();
-    if(count($one) > count($two)) {
+    if(count($one) == 0) {
+        foreach($two as $friend) {
+            $stats[$gameId]['friends'][$friend->championId] = 0;
+        }
+    } else if(count($two) == 0) {
+        foreach($one as $friend) {
+            $stats[$gameId]['friends'][$friend->championId] = 0;
+        }
+    } else if(count($one) > count($two)) {
         foreach($one as $enemy) {
             $stats[$gameId]['enemies'][$enemy->championId] = 0;
         }
@@ -149,18 +157,18 @@ function combineStats($stats) {
 }
 
 function printStats($stats) {
-    $bestFriend;
-    $traitor;
-    $worstNightmare;
-    $frienemy;
+    $bestFriend = array();
+    $traitor = array();
+    $worstNightmare = array();
+    $frienemy = array();
 
     foreach($stats['friends'] as $champId => $score) {
-        if(!isset($bestFriend)) {
+        if(!count($bestFriend)) {
             $bestFriend = array($champId => $score);
         } else if($score > current($bestFriend)) {
             $bestFriend = array($champId => $score);
         }
-        if(!isset($traitor)) {
+        if(!count($traitor)) {
             $traitor = array($champId => $score);
         } else if($score < current($traitor)) {
             $traitor = array($champId => $score);
@@ -168,12 +176,12 @@ function printStats($stats) {
     }
 
     foreach($stats['enemies'] as $champId => $score) {
-        if(!isset($worstNightmare)) {
+        if(!count($worstNightmare)) {
             $worstNightmare = array($champId => $score);
         } else if($score < current($worstNightmare)) {
             $worstNightmare = array($champId => $score);
         }
-        if(!isset($frienemy)) {
+        if(!count($frienemy)) {
             $frienemy = array($champId => $score);
         } else if($score > current($frienemy)) {
             $frienemy = array($champId => $score);
@@ -237,7 +245,7 @@ if (!isset($options['summoner']))
 
 $summoner = $options['summoner'];
 $id = getSummonerIdFromName($summoner);
-echo "\nid=$id\n";
 if($id) {
     printStats(getStatsFromId($id));
+    echo "\n";
 }
