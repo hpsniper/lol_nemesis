@@ -1,40 +1,11 @@
 <?php
 
 include_once('api_key.php');
+include_once('ApiCaller.php');
 
 function usage()
 {
         echo "usage: proof.php --summoner=SMN_NAME" . PHP_EOL;
-}
-
-function getSummonerIdFromName($name) {
-    $key = getApiKey();
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "https://na.api.pvp.net/api/lol/na/v1.4/summoner/by-name/$name?api_key=$key");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    $data = json_decode($response, true);
-    if($data && $data[$name]) {
-        return $data[$name]['id'];
-    } else {
-        return 0;
-    }
-}
-
-function getChampionNameFromId($champId) {
-    $key = getApiKey();
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "https://na.api.pvp.net/api/lol/static-data/na/v1.2/champion/$champId?api_key=$key");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    $data = json_decode($response, true);
-    if($data && $data['name']) {
-        return $data['name'];
-    } else {
-        return '';
-    }
 }
 
 function alignTeams($players, $stats, $gameId) {
@@ -157,6 +128,7 @@ function combineStats($stats) {
 }
 
 function printStats($stats) {
+    $apiCaller = new ApiCaller(getApiKey());
     $bestFriend = array();
     $traitor = array();
     $worstNightmare = array();
@@ -190,22 +162,22 @@ function printStats($stats) {
 
     echo "\nbestFriend = ";
     foreach($bestFriend as $champId => $score) {
-        $name = getChampionNameFromId($champId);
+        $name = $apiCaller->getChampionNameFromId($champId);
         echo "$name => $score";
     }
     echo "\ntraitor = ";
     foreach($traitor as $champId => $score) {
-        $name = getChampionNameFromId($champId);
+        $name = $apiCaller->getChampionNameFromId($champId);
         echo "$name => $score";
     }
     echo "\nworstNightmare = ";
     foreach($worstNightmare as $champId => $score) {
-        $name = getChampionNameFromId($champId);
+        $name = $apiCaller->getChampionNameFromId($champId);
         echo "$name => $score";
     }
     echo "\nfrienemy = ";
     foreach($frienemy as $champId => $score) {
-        $name = getChampionNameFromId($champId);
+        $name = $apiCaller->getChampionNameFromId($champId);
         echo "$name => $score";
     }
 }
@@ -244,7 +216,8 @@ if (!isset($options['summoner']))
 }
 
 $summoner = $options['summoner'];
-$id = getSummonerIdFromName($summoner);
+$apiCaller = new ApiCaller(getApiKey());
+$id = $apiCaller->getSummonerIdFromName($summoner);
 if($id) {
     printStats(getStatsFromId($id));
     echo "\n";
