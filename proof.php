@@ -12,7 +12,7 @@ function alignTeams($players, $stats, $gameId) {
     $one = array();
     $two = array();
     foreach($players as $player) {
-        if($player->teamId == 100) {
+        if($player['teamId'] == 100) {
             $one[] = $player;
         } else {
             $two[] = $player;
@@ -22,25 +22,25 @@ function alignTeams($players, $stats, $gameId) {
     $stats[$gameId]['friends'] = array();
     if(count($one) == 0) {
         foreach($two as $friend) {
-            $stats[$gameId]['friends'][$friend->championId] = 0;
+            $stats[$gameId]['friends'][$friend['championId']] = 0;
         }
     } else if(count($two) == 0) {
         foreach($one as $friend) {
-            $stats[$gameId]['friends'][$friend->championId] = 0;
+            $stats[$gameId]['friends'][$friend['championId']] = 0;
         }
     } else if(count($one) > count($two)) {
         foreach($one as $enemy) {
-            $stats[$gameId]['enemies'][$enemy->championId] = 0;
+            $stats[$gameId]['enemies'][$enemy['championId']] = 0;
         }
         foreach($two as $friend) {
-            $stats[$gameId]['friends'][$friend->championId] = 0;
+            $stats[$gameId]['friends'][$friend['championId']] = 0;
         }
     } else {
         foreach($two as $enemy) {
-            $stats[$gameId]['enemies'][$enemy->championId] = 0;
+            $stats[$gameId]['enemies'][$enemy['championId']] = 0;
         }
         foreach($one as $friend) {
-            $stats[$gameId]['friends'][$friend->championId] = 0;
+            $stats[$gameId]['friends'][$friend['championId']] = 0;
         }
     }
 
@@ -182,24 +182,16 @@ function printStats($stats) {
     }
 }
 
-function getStatsFromId($id) {
-    $key = getApiKey();
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "https://na.api.pvp.net/api/lol/na/v1.3/game/by-summoner/$id/recent?api_key=$key");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    $data = json_decode($response);
-    if(!$data) {
-        return 0;
-    }
+function getStatsFromId($summonerId) {
+    $apiCaller = new ApiCaller(getApiKey());
+    $data = $apiCaller->getStatsFromSummonerId($summonerId);
 
     $stats = array();
-    foreach($data->games as $game) {
-        $gameId = $game->gameId;
+    foreach($data['games'] as $game) {
+        $gameId = $game['gameId'];
         $stats[$gameId] = array();
-        $stats = alignTeams($game->fellowPlayers, $stats, $gameId);
-        $stats = tallyStats($game->stats, $stats, $gameId);
+        $stats = alignTeams($game['fellowPlayers'], $stats, $gameId);
+        $stats = tallyStats($game['stats'], $stats, $gameId);
     }
 
     $stats = combineStats($stats);

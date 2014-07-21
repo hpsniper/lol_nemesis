@@ -17,6 +17,16 @@ class ApiCaller {
         return 0;
     }
 
+    public function getStatsFromSummonerId($id) {
+        $url = "https://na.api.pvp.net/api/lol/na/v1.3/game/by-summoner/$id/recent";
+        $data = $this->make_api_call($url);
+        if($data) {
+            return $data;
+        }
+
+        return array();
+    }
+
     public function getChampionNameFromId($championId) {
         $url = "https://na.api.pvp.net/api/lol/static-data/na/v1.2/champion/$championId";
         $data = $this->make_api_call($url);
