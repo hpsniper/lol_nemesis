@@ -124,61 +124,39 @@ function combineStats($stats) {
         }
     }
 
+    asort($friends);
+    asort($enemies);
+    asort($totals);
+
     return array('friends' => $friends, 'enemies' => $enemies, 'totals' => $totals);
 }
 
-function printStats($stats) {
+function printStats($stats, $count) {
     $apiCaller = new ApiCaller(getApiKey());
-    $bestFriend = array();
-    $traitor = array();
-    $worstNightmare = array();
-    $frienemy = array();
+    $bestFriend = array_reverse(array_slice($stats['friends'], ($count * -1), $count, true), true);
+    $traitor = array_slice($stats['friends'], 0, $count, true);
+    $worstNightmare = array_slice($stats['enemies'], 0, $count, true);
+    $frienemy = array_reverse(array_slice($stats['enemies'], ($count * -1), $count, true), true);
 
-    foreach($stats['friends'] as $champId => $score) {
-        if(!count($bestFriend)) {
-            $bestFriend = array($champId => $score);
-        } else if($score > current($bestFriend)) {
-            $bestFriend = array($champId => $score);
-        }
-        if(!count($traitor)) {
-            $traitor = array($champId => $score);
-        } else if($score < current($traitor)) {
-            $traitor = array($champId => $score);
-        }
-    }
-
-    foreach($stats['enemies'] as $champId => $score) {
-        if(!count($worstNightmare)) {
-            $worstNightmare = array($champId => $score);
-        } else if($score < current($worstNightmare)) {
-            $worstNightmare = array($champId => $score);
-        }
-        if(!count($frienemy)) {
-            $frienemy = array($champId => $score);
-        } else if($score > current($frienemy)) {
-            $frienemy = array($champId => $score);
-        }
-    }
-
-    echo "\nbestFriend = ";
+    echo "\nbestFriends:     ";
     foreach($bestFriend as $champId => $score) {
         $name = $apiCaller->getChampionNameFromId($champId);
-        echo "$name => $score";
+        echo "$name => $score\t";
     }
-    echo "\ntraitor = ";
+    echo "\ntraitors:        ";
     foreach($traitor as $champId => $score) {
         $name = $apiCaller->getChampionNameFromId($champId);
-        echo "$name => $score";
+        echo "$name => $score\t";
     }
-    echo "\nworstNightmare = ";
+    echo "\nworstNightmares: ";
     foreach($worstNightmare as $champId => $score) {
         $name = $apiCaller->getChampionNameFromId($champId);
-        echo "$name => $score";
+        echo "$name => $score\t";
     }
-    echo "\nfrienemy = ";
+    echo "\nfrienemies:      ";
     foreach($frienemy as $champId => $score) {
         $name = $apiCaller->getChampionNameFromId($champId);
-        echo "$name => $score";
+        echo "$name => $score\t";
     }
 }
 
@@ -199,7 +177,7 @@ function getStatsFromId($summonerId) {
     return $stats;
 }
 
-$options = getopt("v", array("summoner:"));
+$options = getopt("v", array("summoner:", "count:"));
 
 if (!isset($options['summoner']))
 {
@@ -208,9 +186,10 @@ if (!isset($options['summoner']))
 }
 
 $summoner = $options['summoner'];
+$count = isset($options['count']) ? $options['count'] : 1;
 $apiCaller = new ApiCaller(getApiKey());
 $id = $apiCaller->getSummonerIdFromName($summoner);
 if($id) {
-    printStats(getStatsFromId($id));
+    printStats(getStatsFromId($id), $count);
     echo "\n";
 }
